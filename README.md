@@ -13,3 +13,4 @@ This repository contains a bunch of benchmarks on partial evaluation and graph a
   * Partial evaluation on everything possible
 * Impala + JIT benchmarks
 * Charts with benchmark results
+* Basic SuiteSparse benchmarks
