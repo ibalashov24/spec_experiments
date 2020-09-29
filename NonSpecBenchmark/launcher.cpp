@@ -123,7 +123,7 @@ static void BM_mult_fs1832_eye3(benchmark::State &state)
     delete [] result;
     delete result_size;
 }
-BENCHMARK(BM_mult_bcsstk16_2blocks);
+BENCHMARK(BM_mult_fs1832_eye3);
 
 
 BENCHMARK_MAIN();
