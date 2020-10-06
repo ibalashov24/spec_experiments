@@ -75,7 +75,7 @@ exec_fn compile_spec_function(
 // Calculates the product of two sparse matrices\n\
 // Both in COO format\n\
 extern\n\
-fn mult_matrix_matrix(\n\
+fn @mult_matrix_matrix(\n\
         first_matrix: &[CooElement],\n\
         first_matrix_nonzero: i32,\n\
         second_matrix: fn(i32) -> CooElement,\n\
