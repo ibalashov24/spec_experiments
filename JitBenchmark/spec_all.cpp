@@ -75,7 +75,7 @@ exec_fn compile_spec_function(
 // Calculates the product of two sparse matrices\n\
 // Both in COO format\n\
 extern\n\
-fn mult_matrix_matrix(\n\
+fn @mult_matrix_matrix(\n\
         first_matrix: &[CooElement],\n\
         first_matrix_nonzero: i32,\n\
         second_matrix: fn(i32) -> CooElement,\n\
@@ -140,17 +140,17 @@ fn wrapper( \n\
 
 static void BM_mult_bcsstk16_2blocks(benchmark::State &state)
 {
-    auto left_matrix = read_matrix("Matrix/bcsstk16"); // Size 147631
-    auto right_matrix = read_matrix("Matrix/2blocks"); // Size 8
+    auto left_matrix = read_matrix("Matrix/2blocks"); // Size 147631
+    auto right_matrix = read_matrix("Matrix/bcsstk16"); // Size 8
 
     auto buffer = new CooElement[2000000];
     auto result = new CooElement[2000000];
    
-    auto wrapper = compile_spec_function(right_matrix, 8);
+    auto wrapper = compile_spec_function(right_matrix, 147631);
 
     for (auto _ : state)
     {
-        wrapper(left_matrix.data(), 147631, buffer, result);
+        wrapper(left_matrix.data(), 8, buffer, result);
     } 
 
     delete [] buffer;

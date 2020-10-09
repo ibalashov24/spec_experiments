@@ -25,10 +25,8 @@ fn @mult_matrix_matrix(
         first_matrix: &[CooElement],
         first_matrix_nonzero: i32,
         second_matrix: &[CooElement],
-        second_matrix_nonzero : i32,
-        buffer: &mut [CooElement],
-        result: &mut [CooElement],
-        result_size: &mut i32) -> () {
+        second_matrix_nonzero : i32)
+         -> &[CooElement] {
 
     let mut current_buffer_pos : i32 = 0; 
     for i in unroll(0, first_matrix_nonzero) {
