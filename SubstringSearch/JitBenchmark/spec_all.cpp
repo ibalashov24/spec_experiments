@@ -13,9 +13,8 @@ std::string read_string(const std::string &path)
     std::ios::sync_with_stdio(false);
 
     std::ifstream in(path);
-
     std::string result;
-    in >> result;
+    getline(in, result);
     in.close();
 
     return result;
@@ -23,7 +22,7 @@ std::string read_string(const std::string &path)
 
 std::string generate_function_string(const std::string &str)
 {
-    std::string result = "fn @second(i : i32) -> u8 {\n\
+    std::string result = "fn second(i : i32) -> u8 {\n\
                           match i {\n";
     for (int i = 0; i < str.size(); ++i)
     {
@@ -31,6 +30,8 @@ std::string generate_function_string(const std::string &str)
     }
     result += "_ => 0 as u8\n";
     result += "} }\n";
+
+    //std::cout << result << std::endl;
 
     return result;
 }
@@ -50,16 +51,15 @@ fn @tensor_product(\n\
 \n\
     for i in unroll(0, source_length) {\n\
         for j in unroll(0, pattern_length + 1) {\n\
-            if (j == pattern_length) { \n\
+            if j == pattern_length { \n\
                 return(i)\n\
-            } \n\
-            if source(i) != pattern(j) {\n\
+            } else if source(i) != pattern(j) {\n\
                 break()\n\
             }\n\
         }\n\
-    }\n\
+    };\n\
 \
-    return(-1)\
+    -1\
 }\n\
 \n\
 extern \
@@ -86,7 +86,7 @@ fn wrapper( \n\
     return nullptr;
 }
 
-static void BM_substr_200000_1(benchmark::State &state)
+static void BM_substr_20000000_1(benchmark::State &state)
 {
     auto left = read_string("Strings/Source/1.in");
     auto right = read_string("Strings/Pattern/1.in"); 
@@ -98,10 +98,10 @@ static void BM_substr_200000_1(benchmark::State &state)
         wrapper(left.c_str(), left.size());
     } 
 }
-BENCHMARK(BM_substr_200000_1);
+BENCHMARK(BM_substr_20000000_1);
 
 
-static void BM_substr_20000_1(benchmark::State &state)
+static void BM_substr_20000000_2(benchmark::State &state)
 {
     auto left = read_string("Strings/Source/2.in");
     auto right = read_string("Strings/Pattern/1.in"); 
@@ -116,7 +116,7 @@ static void BM_substr_20000_1(benchmark::State &state)
 BENCHMARK(BM_substr_20000_1);
 
 
-static void BM_substr_200000_2(benchmark::State &state)
+static void BM_substr_20000000_3(benchmark::State &state)
 {
     auto left = read_string("Strings/Source/1.in");
     auto right = read_string("Strings/Pattern/2.in"); 
@@ -128,10 +128,10 @@ static void BM_substr_200000_2(benchmark::State &state)
         wrapper(left.c_str(), left.size());
     } 
 }
-BENCHMARK(BM_substr_200000_2);
+BENCHMARK(BM_substr_20000000_3);
 
 
-static void BM_substr_20000_2(benchmark::State &state)
+static void BM_substr_20000000_4(benchmark::State &state)
 {
     auto left = read_string("Strings/Source/2.in");
     auto right = read_string("Strings/Pattern/2.in"); 
@@ -143,21 +143,38 @@ static void BM_substr_20000_2(benchmark::State &state)
         wrapper(left.c_str(), left.size());
     } 
 }
-BENCHMARK(BM_substr_20000_2);
+BENCHMARK(BM_substr_20000000_4);
 
 static void BM_substr_exact(benchmark::State &state)
 {
     auto left = read_string("Strings/Source/3.in");
     auto right = read_string("Strings/Pattern/2.in"); 
 
+    std::cout << left.size() << std::endl;
+
     auto wrapper = compile_spec_function(right.c_str());
 
     for (auto _ : state)
     {
-        std::cout << wrapper(left.c_str(), left.size()) << std::endl;
+        wrapper(left.c_str(), left.size());
     } 
 }
 BENCHMARK(BM_substr_exact);
+
+static void BM_substr_exact_short(benchmark::State &state)
+{
+    auto left = read_string("Strings/Source/0.in");
+    auto right = read_string("Strings/Pattern/0.in"); 
+
+    auto wrapper = compile_spec_function(right.c_str());
+
+    for (auto _ : state)
+    {
+        wrapper(left.c_str(), left.size());
+    } 
+}
+BENCHMARK(BM_substr_exact_short);
+
 
 
 BENCHMARK_MAIN();
