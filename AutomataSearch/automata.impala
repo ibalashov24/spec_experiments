@@ -2,14 +2,14 @@ extern
 fn regex_dense(
     string: &[u8],
     string_length: i32,
-    automata: &[u8],
-    state_count: i32)
+    automata: &[i32],
+    state_count: i32) -> i32
 {
     for i in unroll(0, string_length) {
-        let current_state : i32 = 1;
-        let j : i32 = 0;
+        let mut current_state : i32 = 1;
+        let mut j : i32 = 0;
         while current_state != state_count {
-            let next_state : i32 = automata(255 * current_state + string(i + j) - 97);
+            let next_state : i32 = automata(255 * current_state + (string(i + j) as i32) - 97);
             
             if (next_state == 0) {
                 break()
@@ -34,32 +34,33 @@ struct CooAutomataElement {
 }
 
 extern 
-fn regex_sparse_coo(
+fn @regex_sparse_coo(
     string: &[u8],
     string_length: i32,
-    automata: &[CooAutomataElement],
+    automata: fn (i32) -> CooAutomataElement, 
     coo_size: i32,
-    state_count: i32)
+    state_count: i32) -> i32
 {
-    for i in unroll(string_length) {
-        let current_state : i32 = 1;
-        while (current_state != state_count) {
+    for i in unroll(0, string_length) {
+        let mut current_state : i32 = 0;
+        let mut pattern_length = 0;
+
+        while (current_state != state_count && pattern_length < 10) {
             for j in unroll(0, coo_size + 1) {
                 if (j == coo_size) {
-                    break();
+                    break()
                 }
 
-                if (automata(j).state == current_state && automata(j).symbol == string(i + j)
-                {
+                if (automata(j).state == current_state && automata(j).symbol == string(i + pattern_length)) {
                     current_state = automata(j).next_state
                 }            
-
-                if (current_state == state_count)
-                {
-                    return(i)
-                }
             }
 
+            if (current_state == state_count) {
+                return (i)
+            }
+
+            pattern_length = pattern_length + 1
         }
     }
     
@@ -74,24 +75,24 @@ fn regex_sparse_csr(
     symbols: &[u8],
     next_state: &[i32],
     csr_size: i32,
-    state_count: i32)
+    state_count: i32) -> i32
 {
     for i in unroll(0, string_length) {
-        let current_state : i32 = 1;
-        let j : i32 = 0;
+        let mut current_state : i32 = 1;
+        let mut j : i32 = 0;
 
         while (current_state != state_count) {
-            let is_found_next : u8 = 0;
+            let mut is_found_next : u8 = 0 as u8;
             for k in unroll(state_start_pos(current_state), state_start_pos(current_state + 1)) {
                 if (symbols(k) == string(i + j)) {
                     current_state = next_state(k);
-                    is_found_next = 1;
+                    is_found_next = 1 as u8;
 
                     break()
                 }
             }
         
-            if (is_found_next == 0) {
+            if (is_found_next == (0 as u8)) {
                 break()
             }
 
