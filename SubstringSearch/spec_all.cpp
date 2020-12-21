@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <sstream>
 
 #include <benchmark/benchmark.h>
 
@@ -22,7 +23,7 @@ std::string read_string(const std::string &path)
 
 std::string generate_function_string(const std::string &str)
 {
-    std::string result = "fn second(i : i32) -> u8 {\n\
+    std::string result = "fn @second(i : i32) -> u8 {\n\
                           match i {\n";
     for (int i = 0; i < str.size(); ++i)
     {
@@ -53,13 +54,15 @@ fn @tensor_product(\n\
         for j in unroll(0, pattern_length + 1) {\n\
             if j == pattern_length { \n\
                 return(i)\n\
-            } else if source(i) != pattern(j) {\n\
+            }\
+            \
+            if source(i + j) != pattern(j) {\n\
                 break()\n\
             }\n\
         }\n\
-    };\n\
+    }\n\
 \
-    -1\
+    return(-1)\
 }\n\
 \n\
 extern \
@@ -70,6 +73,8 @@ fn wrapper( \n\
         std::to_string(right.size()) + ")\n\
 }\n\
 ";
+
+//std::cout << program_string << std::endl;
 
     auto key = anydsl_compile(
             program_string.c_str(), 
@@ -113,7 +118,7 @@ static void BM_substr_20000000_2(benchmark::State &state)
         wrapper(left.c_str(), left.size());
     } 
 }
-BENCHMARK(BM_substr_20000_1);
+BENCHMARK(BM_substr_20000000_2);
 
 
 static void BM_substr_20000000_3(benchmark::State &state)
@@ -175,7 +180,24 @@ static void BM_substr_exact_short(benchmark::State &state)
 }
 BENCHMARK(BM_substr_exact_short);
 
+static void BM_huge_source_1(benchmark::State &state)
+{
+    std::ifstream in("Strings/Source/pdfsdump");
+    std::stringstream buffer;
+    buffer << in.rdbuf();
 
+    auto right = read_string("Strings/Pattern/snort3-community.rules");
+
+    std::cout << buffer.str().size() << std::endl;
+
+    auto wrapper = compile_spec_function(right.c_str());
+
+    for (auto _ : state)
+    {
+        wrapper(buffer.str().c_str(), buffer.str().size());
+    } 
+}
+BENCHMARK(BM_huge_source_1);
 
 BENCHMARK_MAIN();
 
