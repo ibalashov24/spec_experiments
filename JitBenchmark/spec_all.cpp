@@ -124,8 +124,8 @@ fn wrapper( \n\
 
 static void BM_mult_bcsstk16_2blocks(benchmark::State &state)
 {
-    auto left_matrix = read_matrix("Matrix/bcsstk16"); // Size 147631
-    auto right_matrix = read_matrix("Matrix/2blocks"); // Size 8
+    auto left_matrix = read_matrix("Matrix/2blocks"); // Size 147631
+    auto right_matrix = read_matrix("Matrix/bcsstk16"); // Size 8
 
     auto buffer = new CooElement[2000000];
     auto result = new CooElement[2000000];

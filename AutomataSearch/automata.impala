@@ -1,0 +1,104 @@
+extern
+fn regex_dense(
+    string: &[u8],
+    string_length: i32,
+    automata: fn (i32, u8) -> i32,
+    state_count: i32) -> i32
+{
+    for i in unroll(0, string_length) {
+        let mut current_state : i32 = 1;
+        let mut j : i32 = 0;
+        while current_state != state_count {
+            let next_state : i32 = automata(current_state, string(i + j));
+            
+            if (next_state == 0) {
+                break()
+            }
+
+            current_state = next_state;
+            j = j + 1
+        }
+    
+        if (current_state == state_count) {
+            return (i)
+        }
+    }
+
+    return (-1)
+}
+
+struct CooAutomataElement {
+    state: i32,
+    next_state: i32,
+    symbol: u8
+}
+
+extern 
+fn @regex_sparse_coo(
+    string: &[u8],
+    string_length: i32,
+    automata: fn (i32) -> CooAutomataElement, 
+    coo_size: i32,
+    state_count: i32) -> i32
+{
+    for i in unroll(0, string_length) {
+        let mut current_state : i32 = 0;
+        let mut pattern_length = 0;
+
+        while (current_state != state_count && pattern_length < 10) {
+            for j in unroll(0, coo_size + 1) {
+                if (j == coo_size) {
+                    break()
+                }
+
+                if (automata(j).state == current_state && automata(j).symbol == string(i + pattern_length)) {
+                    current_state = automata(j).next_state
+                }            
+            }
+
+            if (current_state == state_count) {
+                return (i)
+            }
+
+            pattern_length = pattern_length + 1
+        }
+    }
+    
+    return (-1)
+}
+
+extern 
+fn regex_sparse_csr(
+    string: &[u8],
+    string_length: i32,
+    state_start_pos: &[i32],
+    symbols: &[u8],
+    next_state: &[i32],
+    csr_size: i32,
+    state_count: i32) -> i32
+{
+    for i in unroll(0, string_length) {
+        let mut current_state : i32 = 1;
+        let mut j : i32 = 0;
+
+        while (current_state != state_count) {
+            let mut is_found_next : u8 = 0 as u8;
+            for k in unroll(state_start_pos(current_state), state_start_pos(current_state + 1)) {
+                if (symbols(k) == string(i + j)) {
+                    current_state = next_state(k);
+                    is_found_next = 1 as u8;
+
+                    break()
+                }
+            }
+        
+            if (is_found_next == (0 as u8)) {
+                break()
+            }
+
+            j = j + 1
+        }
+    }
+
+    return (-1)
+}
