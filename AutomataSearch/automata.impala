@@ -2,14 +2,14 @@ extern
 fn regex_dense(
     string: &[u8],
     string_length: i32,
-    automata: &[i32],
+    automata: fn (i32, u8) -> i32,
     state_count: i32) -> i32
 {
     for i in unroll(0, string_length) {
         let mut current_state : i32 = 1;
         let mut j : i32 = 0;
         while current_state != state_count {
-            let next_state : i32 = automata(255 * current_state + (string(i + j) as i32) - 97);
+            let next_state : i32 = automata(current_state, string(i + j));
             
             if (next_state == 0) {
                 break()
