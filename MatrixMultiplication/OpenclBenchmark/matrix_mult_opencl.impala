@@ -1,0 +1,61 @@
+struct CooElement
+{
+    row: i32,
+    col: i32,
+    value : f64
+}
+
+
+// Perofrms matrix multiplication on GPU using OpenCL
+// Pointer should represent GPU memory
+// Device is always 0 
+extern 
+fn opencl_mult_matrices(
+    first_matrix: &[CooElement],
+    first_matrix_nonzero: i32,
+    first_size: &[i32],
+    second_matrix: &[CooElement],
+    second_matrix_nonzero: i32,
+    second_size: &[i32])
+        -> &[CooElement]
+{
+    let grid = (1, 1, 1);
+    let block = (1, 1, 1);
+    let device = 0;
+
+    // 16 is CooElement size
+    let buf = alloc_opencl(0, (16 as i64) * (first_size(0) as i64) * (second_size(1) as i64));
+
+    let buf_data : &mut [CooElement] = buf.data as &mut [CooElement];
+    with opencl(device, grid, block) {
+        let pos = opencl_get_global_id(0 as u32) * opencl_get_global_size(0 as u32) 
+                    + opencl_get_local_id(0 as u32);
+
+        if (pos >= first_matrix_nonzero as u64) {
+            break()
+        };
+
+        let mut buf_size = 0;
+        let elem = first_matrix(pos);
+        for i in range(0, second_matrix_nonzero as i32) {
+            if second_matrix(i).row == elem.col {
+                let new_value = second_matrix(i).value * elem.value;
+                for j in range(0, buf_size + 1) {
+                    // If existing element was not found
+                    if j == buf_size {
+                        buf_size += 1;
+                        buf_data(j) = CooElement { 
+                            row : elem.row, 
+                            col: second_matrix(i).col, 
+                            value: new_value } 
+                    } else if (buf_data(j).row == elem.row) && (buf_data(j).col == second_matrix(i).col) {
+                        buf_data(j).value += new_value;
+                        break()
+                    }
+                }
+           }
+        }
+    }
+
+    return (buf_data)
+}
