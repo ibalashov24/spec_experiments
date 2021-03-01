@@ -26,8 +26,11 @@ fn opencl_mult_matrices(
     // 16 is CooElement size
     let buf = alloc_opencl(0, (16 as i64) * (first_size(0) as i64) * (second_size(1) as i64));
 
-    let buf_data : &mut [CooElement] = buf.data as &mut [CooElement];
     with opencl(device, grid, block) {
+        let first_global = bitcast[&[1][CooElement]](first_matrix);
+        let second_global = bitcast[&[1][CooElement]](second_matrix);
+        let buf_data = bitcast[&mut [1][CooElement]](buf.data);
+
         let pos = opencl_get_global_id(0 as u32) * opencl_get_global_size(0 as u32) 
                     + opencl_get_local_id(0 as u32);
 
@@ -36,19 +39,19 @@ fn opencl_mult_matrices(
         };
 
         let mut buf_size = 0;
-        let elem = first_matrix(pos);
+        let elem : &[1]CooElement = &first_global(pos);
         for i in range(0, second_matrix_nonzero as i32) {
-            if second_matrix(i).row == elem.col {
-                let new_value = second_matrix(i).value * elem.value;
+            if second_global(i).row == elem.col {
+                let new_value = second_global(i).value * (*elem).value;
                 for j in range(0, buf_size + 1) {
                     // If existing element was not found
                     if j == buf_size {
                         buf_size += 1;
                         buf_data(j) = CooElement { 
                             row : elem.row, 
-                            col: second_matrix(i).col, 
+                            col: second_global(i).col, 
                             value: new_value } 
-                    } else if (buf_data(j).row == elem.row) && (buf_data(j).col == second_matrix(i).col) {
+                    } else if (buf_data(j).row == elem.row) && (buf_data(j).col == second_global(i).col) {
                         buf_data(j).value += new_value;
                         break()
                     }
@@ -57,5 +60,6 @@ fn opencl_mult_matrices(
         }
     }
 
-    return (buf_data)
+    let result_data = bitcast[&[CooElement]](buf.data);
+    return(result_data)
 }
